@@ -29,13 +29,13 @@ Here is the directory structure of our repository:
     ├─onmt_lstm
     └─oracle
 ```
-##### data_prepare
+#### data_prepare
 
 Files in this directory are the scripts for data pre- and post-processing, including all the python code for filtering, cleaning, partitioning, counting and figure drawing.
 
 Our dataset are composed of two parts: the Python subset and the Java subset. We upload those processed data to kaggle.com for intuitive interaction. [Stack Overflow Title Generation (py&java filtered) | Kaggle](https://www.kaggle.com/qwzfj999/stack-overflow-title-generation-pyjava-filtered)
 
-##### models
+#### models
 
 We put the code for CCBERT  and all baseline models in this directory except BART, for which we use [fairseq's](https://github.com/pytorch/fairseq/tree/master/examples/bart) implementation.
 
