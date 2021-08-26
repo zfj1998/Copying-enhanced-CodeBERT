@@ -37,6 +37,6 @@ Our dataset are composed of two parts: the Python subset and the Java subset. We
 
 ##### models
 
-We put the code for CCBERT  and all baseline models (except for BART, for which we use [this]([fairseq/examples/bart at master · pytorch/fairseq (github.com)](https://github.com/pytorch/fairseq/tree/master/examples/bart)) implementation) in this directory.
+We put the code for CCBERT  and all baseline models in this directory except BART, for which we use [fairseq's](https://github.com/pytorch/fairseq/tree/master/examples/bart) implementation.
 
 Specifically, to run CCBERT, one should first view and change the basic configures like file_path, version_id in the config.py. Then run the main.py for training and evaluation.
