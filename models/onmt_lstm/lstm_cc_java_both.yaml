@@ -1,0 +1,46 @@
+save_data: ./data/lstm_cc_java_both
+data:
+    train:
+        path_src: ./data/java.both.train.src.txt
+        path_tgt: ./data/java.both.train.tgt.txt
+    valid:
+        path_src: ./data/java.both.valid.src.txt
+        path_tgt: ./data/java.both.valid.tgt.txt
+
+src_vocab: ./data/java_both.src
+save_model: ./models/lstm_cc_java_both
+
+src_vocab_size: 50000
+tgt_vocab_size: 50000
+share_vocab: 'true'
+
+src_seq_length_trunc: 510
+save_checkpoint_steps: 1500
+seed: 999
+train_steps: 80000
+valid_steps: 1500
+report_every: 150
+
+encoder_type: brnn
+word_vec_size: 300
+rnn_size: 500
+layers: 2
+
+optim: adagrad
+learning_rate: 0.1
+adagrad_accumulator_init: 0.1
+max_grad_norm: 2
+
+batch_size: 16
+valid_batch_size: 16
+dropout: 0.0
+
+copy_attn: 'true'
+coverage_attn: 'true'
+global_attention: mlp
+reuse_copy_attn: 'true'
+bridge: 'true'
+copy_attn_force: 'true'
+
+world_size: 1
+gpu_ranks: [0]
