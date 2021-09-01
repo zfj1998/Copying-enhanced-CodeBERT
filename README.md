@@ -4,7 +4,7 @@ Code for paper(under review) "**Improving Stack Overflow question title generati
 
 CCBERT is a Copying enhanced CodeBERT model for Stack Overflow title generation.
 
-![framework](./figs/framework.png)
+<!-- ![framework](./figs/framework.png) -->
 
 ### Package Requirement
 
