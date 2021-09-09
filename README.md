@@ -11,11 +11,11 @@ CCBERT is a Copying enhanced CodeBERT model for Stack Overflow title generation.
 To run this code, some packages are needed as follows:
 
 ```
-OpenNMT-py >= 2.0.1
-pytorch >= 1.6.0
-rouge >= 1.0.0
-nltk >= 3.6.2
-transformers >= 4.6.1
+OpenNMT-py == 2.0.1
+pytorch == 1.6.0
+rouge == 1.0.0
+nltk == 3.6.2
+transformers == 4.6.1
 ```
 
 ### Dataset and Models
