@@ -9,7 +9,7 @@ CCBERT is a Copying enhanced CodeBERT model for Stack Overflow title generation.
 ### Package Requirement
 
 To run this code, some packages are needed as follows:
-
+Python version 3.7
 ```
 OpenNMT-py == 2.0.1
 pytorch == 1.6.0
