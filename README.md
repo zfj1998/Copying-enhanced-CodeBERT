@@ -1,10 +1,10 @@
 # CCBERT
 
-Code for paper(under review) "**Improving Stack Overflow question title generation with copying enhanced CodeBERT model and bi-modal information**"
+Code for paper(under review) "**[Improving Stack Overflow question title generation with copying enhanced CodeBERT model and bi-modal information](https://arxiv.org/abs/2109.13073)**"
 
 CCBERT is a Copying enhanced CodeBERT model for Stack Overflow title generation.
 
-<!-- ![framework](./figs/framework.png) -->
+![framework](./figs/framework.png)
 
 ### Package Requirement
 
@@ -41,3 +41,16 @@ Our dataset are composed of two parts: the Python subset and the Java subset. We
 We put the code for CCBERT  and all baseline models in this directory except BART, for which we use [fairseq's](https://github.com/pytorch/fairseq/tree/master/examples/bart) implementation.
 
 Specifically, to run CCBERT, one should first view and change the basic configures like file_path, version_id in the config.py. Then run the main.py for training and evaluation.
+
+#### Citation
+If you find this work inspiring for your research, please cite our paper:
+```
+@misc{zhang2021improving,
+      title={Improving Stack Overflow question title generation with copying enhanced CodeBERT model and bi-modal information}, 
+      author={Fengji Zhang and Jacky Keung and Xiao Yu and Zhiwen Xie and Zhen Yang and Caoyuan Ma and Zhimin Zhang},
+      year={2021},
+      eprint={2109.13073},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+}
+```
