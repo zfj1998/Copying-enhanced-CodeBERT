@@ -33,7 +33,7 @@ def file_prediction(source_path, pred_path, total_line_count):
         t.close()
 
 if __name__ == '__main__':
-    source_path = '../data/python.both.valid.jsonl'
+    source_path = 'data/ccbert/php.both.valid.jsonl'
     line_count = 2000
-    pred_path = 'data/python.valid.pick.pred.txt'
+    pred_path = 'models/oracle/php.valid.pred.txt'
     file_prediction(source_path, pred_path, line_count)

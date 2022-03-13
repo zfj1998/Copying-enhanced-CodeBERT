@@ -120,17 +120,16 @@ def match_similar(es, source_path, target_path, ref_path, length):
 
 
 if __name__ == '__main__':
-    INDEX_NAME = 'java_train'
-    DOC_TYPE = 'java'
+    INDEX_NAME = 'php_train'
+    DOC_TYPE = 'php'
     FAILED_RECORD = 'failed.txt'  # log of the lines failed to upload
     BULK_SIZE = 100  # bulk_size
-    HOST = 'localhost'  # elastic database ip address
+    HOST = '10.254.19.8'  # elastic database ip address
     es = get_connection()
     # delete_index(es)
-    # initialize(es)
-    TOTAL_SIZE = 57118  # total number of lines to upload
-    # for_line_in("data/java.both.train.jsonl", TOTAL_SIZE,
-    #             BULK_SIZE, upload_json, es)
-    match_similar(es, 'data/java.both.valid.jsonl',
-                  'data/java.valid.match.all.txt',
-                  'data/java.valid.ref.txt', 2000)
+    initialize(es)
+    TOTAL_SIZE = 26535  # total number of lines to upload
+    for_line_in("data/ccbert/php.both.train.jsonl", TOTAL_SIZE, BULK_SIZE, upload_json, es)
+    match_similar(es, 'data/ccbert/php.both.valid.jsonl',
+                  'data/elastic/pred/php.valid.match.all.txt',
+                  'data/elastic/pred/php.valid.ref.txt', 1000)

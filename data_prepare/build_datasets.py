@@ -9,7 +9,7 @@ from itertools import product
 from data_tools.utils import convention_tokenize, write_to_file
 
 
-SOURCE_PATH = 'data/json/filtered_good_{language}_questions.{partition}.jsonl'
+SOURCE_PATH = 'data/json/w_wo_interrogative_{language}_questions.{partition}.jsonl'
 
 
 def merge_segments(content, text_only=False, code_only=False):
@@ -35,7 +35,7 @@ def build_for_onmt():
     but the source input and target need be put in different files
     - all the lines are tokenized and turned into lower case
     '''
-    onmt_file = 'data/onmt/{language}.{type}.{partition}.{direction}.txt'
+    onmt_file = 'data/onmt/{language}.w_wo.{type}.{partition}.{direction}.txt'
     segment = {
         'code_only': (False, True),
         'both': (False, False)
@@ -45,11 +45,17 @@ def build_for_onmt():
         'tgt': '@Title'
     }
     configs = product(
-        ['python', 'java'],
-        ['code_only', 'both'],
+        ['four_lang'],
+        ['both'],
         ['train', 'valid', 'test'],
         ['src', 'tgt']
     )
+    # configs = product(
+    #     ['python', 'java'],
+    #     ['code_only', 'both'],
+    #     ['train', 'valid', 'test'],
+    #     ['src', 'tgt']
+    # )
     for (lang, type, part, direct) in configs:
         source_path = SOURCE_PATH.format(
             language=lang,
@@ -89,9 +95,14 @@ def build_for_ccbert():
         'code_only': (False, True),
         'both': (False, False)
     }
+    # configs = product(
+    #     ['python', 'java'],
+    #     ['code_only', 'both'],
+    #     ['train', 'valid', 'test']
+    # )
     configs = product(
-        ['python', 'java'],
-        ['code_only', 'both'],
+        ['four_lang'],
+        ['code_only'],
         ['train', 'valid', 'test']
     )
     for (lang, type, part) in configs:
@@ -125,13 +136,13 @@ def build_for_ccbert():
         write_to_file(extracted, target_path)
 
 
-def build_for_cbert():
+def build_for_bart():
     '''
     almost the same as ccbert
     '''
-    onmt_file = 'data/cbert/{language}.{partition}.jsonl'
+    onmt_file = 'data/bart/{language}.w_wo.{partition}.jsonl'
     configs = product(
-        ['python', 'java'],
+        ['four_lang'],
         ['train', 'valid', 'test']
     )
     for (lang, part) in configs:
@@ -164,6 +175,6 @@ def build_for_cbert():
 
 
 if __name__ == '__main__':
-    # build_for_onmt()
+    build_for_onmt()
     # build_for_ccbert()
-    build_for_cbert()
+    build_for_bart()

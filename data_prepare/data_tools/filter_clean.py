@@ -15,6 +15,15 @@ from data_tools.utils import line_counter, write_to_file, BATCH_SIZE, \
 
 ALL_PROGRAM_LANGUAGES = set(['<javascript>', '<c#>', '<php>',
                             '<html>', '<c++>', '<python>', '<java>'])
+TOP_15_LANGUAGES = set([
+    '<javascript>', '<python>', '<java>', '<c#>', '<php>',
+    '<html>', '<c++>', '<sql>', '<r>', '<c>',
+    '<swift>', '<objective-c>', '<ruby>', '<vba>', '<typescript>',
+])
+TOP_10_LANGUAGES = set([
+    '<javascript>', '<python>', '<java>', '<c#>', '<php>',
+    '<c++>', '<c>', '<swift>', '<objective-c>', '<ruby>', '<vba>',
+])
 INTERROGATIVES = ['how', 'what', 'why', 'which', 'when']
 
 
@@ -109,7 +118,34 @@ def pick_questions_by_language(language, source_jsonl_path, target_jsonl_path):
         write_to_file(picked_lines, target_jsonl_path)
 
 
-def pick_questions_by_body_content(source_jsonl_path, target_jsonl_path):
+def pick_questions_by_languages(languages, source_jsonl_path, target_jsonl_path):
+    '''
+    input: josnl file of questions
+    output: jsonl file of target language
+    filter out the questions related to target programming language
+    '''
+    picked_lines = []
+    with open(source_jsonl_path, 'r', encoding='utf-8') as f:
+        for line in f:
+            to_pick = False
+            line_json = json.loads(line.strip())
+            tags_raw = line_json['@Tags']
+            for lang_tag in languages:
+                if lang_tag in tags_raw:
+                    to_pick = True
+            if not to_pick:
+                continue
+            picked_lines.append(line)
+        write_to_file(picked_lines, target_jsonl_path)
+
+
+def pick_questions_by_body_content(
+            source_jsonl_path,
+            target_jsonl_path,
+            check_bi_modal=True,
+            check_length=True,
+            check_interrogative=True
+        ):
     '''
     input: josnl file of questions
     output: jsonl file of filtered questions
@@ -128,29 +164,32 @@ def pick_questions_by_body_content(source_jsonl_path, target_jsonl_path):
         for line in f:
             t.update(1)
             line_json = json.loads(line.strip())
-            # skip those not containing both text and code
-            line_body = line_json['@Body']
-            tags = [item[0] for item in line_body]
-            if ('code' not in tags) or ('text' not in tags):
-                count_no_both_text_and_code += 1
-                continue
-            # skip those whose body length exceeds 1000
-            body_len = 0
-            for segment in line_json['@Body']:
-                body_len += len(convention_tokenize(segment[1]))
-            title_len = len(convention_tokenize(line_json['@Title']))
-            if body_len > 1000 or title_len > 25:
-                count_length_too_long += 1
-                continue
-            # skip those whose tile doesnt have interrogative words
-            interrogative_in_title = False
-            title = line_json['@Title'].lower()
-            for i in INTERROGATIVES:
-                if i in title:
-                    interrogative_in_title = True
-            if not interrogative_in_title:
-                count_no_interrogative_words += 1
-                continue
+            if check_bi_modal:
+                # skip those not containing both text and code
+                line_body = line_json['@Body']
+                tags = [item[0] for item in line_body]
+                if ('code' not in tags) or ('text' not in tags):
+                    count_no_both_text_and_code += 1
+                    continue
+            if check_length:
+                # skip those whose body length exceeds 1000
+                body_len = 0
+                for segment in line_json['@Body']:
+                    body_len += len(convention_tokenize(segment[1]))
+                title_len = len(convention_tokenize(line_json['@Title']))
+                if body_len > 1000 or title_len > 25:
+                    count_length_too_long += 1
+                    continue
+            if check_interrogative:
+                # skip those whose tile doesnt have interrogative words
+                interrogative_in_title = False
+                title = line_json['@Title'].lower()
+                for i in INTERROGATIVES:
+                    if i in title:
+                        interrogative_in_title = True
+                if not interrogative_in_title:
+                    count_no_interrogative_words += 1
+                    continue
             filtered_lines.append(line)
         t.close()
     write_to_file(filtered_lines, target_jsonl_path)

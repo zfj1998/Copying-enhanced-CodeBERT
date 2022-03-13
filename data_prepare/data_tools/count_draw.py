@@ -3,15 +3,14 @@ Author WHU ZFJ 2021
 Statistics jobs of our collected data
 '''
 import json
-from unicodedata import decimal
 import numpy as np
 import ipdb
 from tqdm import tqdm
 from datetime import datetime
 from collections import Counter, OrderedDict
-from pylab import subplots_adjust
 from matplotlib import pyplot as plt
-from matplotlib.ticker import PercentFormatter
+from matplotlib.ticker import PercentFormatter, FuncFormatter
+import matplotlib.patheffects as path_effects
 
 from data_tools.utils import line_counter, convention_tokenize
 
@@ -34,7 +33,7 @@ def calc_ratio_of_bimodal_data(source_jsonl_path):
     t = tqdm(total=total_len)
     with open(source_jsonl_path, 'r', encoding='utf-8') as f_lines:
         for line in f_lines:
-            t.update(1)
+            # t.update(1)
             line_js = json.loads(line.strip())
             time_str = line_js['@CreationDate']
             time_obj = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S.%f')
@@ -46,6 +45,8 @@ def calc_ratio_of_bimodal_data(source_jsonl_path):
                 result.append(with_code_key.format(year=year))
             if 'text' in tags:
                 result.append(with_text_key.format(year=year))
+            if year == '2020' and ('code' not in tags):
+                ipdb.set_trace()
         t.close()
     counter = OrderedCounter(result)
     for year in sorted(list(years)):
@@ -111,12 +112,15 @@ def count_length(source_jsonl_path):
     count length of question body and question title
     tokenization is done by our algorithm
     '''
+    total_len = line_counter(source_jsonl_path)
+    t = tqdm(total=total_len)
     with open(source_jsonl_path, mode='r', encoding='utf-8') as f:
         title_length = []
         body_length = []
         text_length = []
         code_length = []
         for line in f:
+            t.update(1)
             js_line = json.loads(line)
             body_content = js_line['@Body']
             title_tokens = convention_tokenize(js_line['@Title'])
@@ -186,7 +190,7 @@ def calc_token_overlap(source_jsonl_path):
             'Overlap Between Title and Code Snippet': token_in_code_ratio,
             'Overlap Between Title and Text Description': token_in_text_ratio
         }
-        return result
+        return result, total_len
 
 
 def plot_histogram(x, save_path, x_label, distance=0.1):
@@ -224,22 +228,83 @@ def draw_token_overlap(data, save_path):
                        prompt[index])
 
 
+def y_fmt(y, pos):
+    decades = [1e9, 1e6, 1e3, 1e0, 1e-3, 1e-6, 1e-9]
+    suffix = ["G", "M", "k", "", "m", "u", "n"]
+    if y == 0:
+        return str(0)
+    for i, d in enumerate(decades):
+        if np.abs(y) >= d:
+            val = y/float(d)
+            signf = len(str(val).split(".")[1])
+            if signf == 0:
+                return '{val:d} {suffix}'.format(val=int(val), suffix=suffix[i])
+            else:
+                if signf == 1:
+                    if str(val).split(".")[1] == "0":
+                        return '{val:d} {suffix}'.format(val=int(round(val)), suffix=suffix[i])
+                tx = "{"+"val:.{signf}f".format(signf=signf) + "} {suffix}"
+                return tx.format(val=val, suffix=suffix[i])
+    return y
+
+
+def draw_token_overlap_all_years(overlaps, save_path):
+    '''
+    use data calculated from calc_token_overlap to draw histogram and line charts
+    '''
+    years = sorted([i for i in overlaps.keys()])
+    text_ratios = [overlaps[year]['text_exp'] for year in years]
+    code_ratios = [overlaps[year]['code_exp'] for year in years]
+    counts = [overlaps[year]['total_count'] for year in years]
+
+    fig, ax = plt.subplots(dpi=500)
+    # fig.subplots_adjust(right=0.9)  # adjust image width
+    twin1 = ax.twinx()
+
+    p3 = ax.bar(years, counts, width=0.6, color="dodgerblue", label='The Amount of Questions')
+    p1, = twin1.plot(years, text_ratios, "crimson", path_effects=[path_effects.SimpleLineShadow(shadow_color="crimson", linewidth=2), path_effects.Normal()],  # dodgerblue
+                     label='Overlap Ratio of Text Description', marker='.')
+    p2, = twin1.plot(years, code_ratios, "lightcoral", path_effects=[path_effects.SimpleLineShadow(shadow_color="lightcoral", linewidth=2), path_effects.Normal()],  # tomato
+                     label='Overlap Ratio of Code Snippet', marker='.')
+
+    # adjust range of Y axis
+    # ax.set_ylim(0, 1)
+    twin1.set_ylim(0.1, 0.8)
+
+    twin1.set_ylabel('Overlap Ratio')
+    ax.set_ylabel('The Amount of Questions')
+    ax.yaxis.set_major_formatter(FuncFormatter(y_fmt))
+    # make line's color the same as axis
+    ax.yaxis.label.set_color("dodgerblue")
+    twin1.yaxis.label.set_color("red")
+    tkw = dict(size=3, width=1)  # change the size of axis marks
+    ax.tick_params(axis='y', colors="dodgerblue", **tkw)
+    twin1.tick_params(axis='y', colors="red", **tkw)
+    ax.set_xticks(years)
+    ax.tick_params(axis='x', **tkw, rotation=45)
+    ax.legend(handles=[p3, p1, p2])
+    plt.savefig(save_path)
+
+
 def calc_overlap_expectation(data):
     '''
     use data calculated from calc_token_overlap to find the math expectation
     '''
+    result = dict()
     for key in data.keys():
         counter = Counter(data[key])
         total_counts = len(data[key])
         expectation = 0
         for ratio in counter.keys():
             expectation += counter[ratio] / total_counts * ratio
+        result[key] = expectation
         print(f'{key} expectation {expectation}')
+    return result
 
 
-def draw_length_distribution(py_body, py_title, ja_body, ja_title, save_path):
+def draw_length_distribution_by_language(py_body, py_title, ja_body, ja_title, save_path):
     '''
-    use data calculated by count_length to show token length distribution
+    use data calculated by count_length to show token length distribution, draw two kinds of languages
     '''
     body_len = [py_body, ja_body]
     title_len = [py_title, ja_title]
@@ -269,6 +334,31 @@ def draw_length_distribution(py_body, py_title, ja_body, ja_title, save_path):
         ax.set_ylabel('Token Count')
     ax1.set_xlabel('Entire Body')
     ax2.set_xlabel('Code Snippets')
+    plt.gcf().subplots_adjust(bottom=0.15, wspace=0.3)
+    plt.savefig(save_path)
+
+
+def draw_length_distribution(body, code, text, save_path):
+    '''
+    use data calculated by count_length to show token length distribution
+    '''
+    body_len = [body, code, text]
+    labels = ['Both Modalities', 'Code Snippets', 'Text Descriptions']
+    plt.figure(dpi=500)
+    fig, (ax1) = plt.subplots(nrows=1, ncols=1, figsize=(5, 3))
+    # rectangular box plot
+    bplot1 = ax1.boxplot(body_len,
+                         sym='',
+                         vert=True,  # vertical box alignment
+                         patch_artist=True,  # fill with color
+                         labels=labels)  # will be used to label x-ticks
+    # fill with colors
+    colors = ['purple', 'lightblue', 'pink']
+    for patch, color in zip(bplot1['boxes'], colors):
+        patch.set_facecolor(color)
+    # adding horizontal grid lines
+    ax1.set_ylabel('Token Count')
+    # ax1.set_xlabel('Entire Body')
     plt.gcf().subplots_adjust(bottom=0.15, wspace=0.3)
     plt.savefig(save_path)
 

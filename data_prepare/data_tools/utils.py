@@ -4,6 +4,7 @@ tools involving file system and tokenizing
 '''
 from tqdm import tqdm
 import pickle
+import os
 
 
 POSTS_ALL_XML_LINE_COUNT = 51296934
@@ -40,6 +41,8 @@ def save_cache(obj, file_path):
 
 
 def load_cache(file_path):
+    if not os.path.exists(file_path):
+        return None
     with open(file_path, 'rb') as f:
         return pickle.load(f)
 
