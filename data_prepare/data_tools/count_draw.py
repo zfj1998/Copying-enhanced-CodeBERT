@@ -3,6 +3,8 @@ Author WHU ZFJ 2021
 Statistics jobs of our collected data
 '''
 import json
+from turtle import ontimer
+from matplotlib.cbook import maxdict
 import numpy as np
 import ipdb
 from tqdm import tqdm
@@ -13,6 +15,9 @@ from matplotlib.ticker import PercentFormatter, FuncFormatter
 import matplotlib.patheffects as path_effects
 
 from data_tools.utils import line_counter, convention_tokenize
+
+CODE_KEY = 'Overlap Between Title and Code Snippet'
+TEXT_KEY = 'Overlap Between Title and Text Description'
 
 
 class OrderedCounter(Counter, OrderedDict):
@@ -164,10 +169,12 @@ def calc_token_overlap(source_jsonl_path):
     with open(source_jsonl_path, mode='r', encoding='utf-8') as f_lines:
         token_in_code_ratio = []
         token_in_text_ratio = []
+        titles = []
         for line in f_lines:
             t.update(1)
             line_js = json.loads(line.strip())
             title = line_js['@Title']
+            titles.append(title)
             title_tokens = set(convention_tokenize(title))
             body = line_js['@Body']
             body_text = ''
@@ -187,8 +194,9 @@ def calc_token_overlap(source_jsonl_path):
             token_in_code_ratio.append(title_in_code_ratio)
         t.close()
         result = {
-            'Overlap Between Title and Code Snippet': token_in_code_ratio,
-            'Overlap Between Title and Text Description': token_in_text_ratio
+            CODE_KEY: token_in_code_ratio,
+            TEXT_KEY: token_in_text_ratio,
+            'titles': titles
         }
         return result, total_len
 
@@ -226,6 +234,49 @@ def draw_token_overlap(data, save_path):
         plot_histogram(data[key],
                        save_path.replace('.png', f'.{index}.png'),
                        prompt[index])
+
+
+def draw_bi_modal_overlap_bar(overlaps):
+    code_overlaps = overlaps[CODE_KEY]
+    text_overlaps = overlaps[TEXT_KEY]
+    result = list()
+    for i in range(len(code_overlaps)):
+        result.append(code_overlaps[i] + text_overlaps[i])
+    plot_histogram(result, 'charts/bi_modal_overlaps_bar.png', 'overlap')
+
+
+def draw_bi_modal_overlap_scatter(overlaps):
+    fig, ax = plt.subplots()
+    code_overlaps = overlaps[CODE_KEY]
+    text_overlaps = overlaps[TEXT_KEY]
+    total = len(code_overlaps)
+    x = list()
+    y = list()
+    alphas = list()
+    x_y_set = dict()
+    for i in range(total):
+        c_o = round(code_overlaps[i], 4)
+        t_o = round(text_overlaps[i], 4)
+        if (c_o, t_o) in x_y_set:
+            x_y_set[(c_o, t_o)] += 1
+            continue
+        x_y_set[(c_o, t_o)] = 1
+        x.append(c_o)
+        y.append(t_o)
+    
+    counts = [i for i in x_y_set.values()]
+    min_c = min(counts)
+    max_c = max(counts)
+
+    for i in range(len(x)):
+        x_i = x[i]
+        y_i = y[i]
+        alpha = round(x_y_set[(x_i, y_i)]/(max_c - min_c), 2)
+        alpha = alpha + 0.005 if alpha <= 0.9 else alpha
+        alphas.append(alpha)
+
+    ax.scatter(x, y, c='blue', alpha=alphas, edgecolors='none')
+    plt.show()
 
 
 def y_fmt(y, pos):

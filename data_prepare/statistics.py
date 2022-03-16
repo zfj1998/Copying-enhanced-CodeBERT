@@ -4,14 +4,16 @@ Main entry for statistics of our paper
 '''
 from functools import cache
 import ipdb
+import random
 from data_tools.filter_clean import \
-    pick_and_clean_good_questions, pick_questions_by_time, pick_questions_by_languages, TOP_10_LANGUAGES
+    pick_and_clean_good_questions, pick_questions_by_time, pick_questions_by_languages, TOP_10_LANGUAGES,\
+    pick_questions_by_body_content
 from data_tools.utils import line_counter, save_cache, load_cache
 from data_tools.count_draw import \
-    calc_ratio_of_bimodal_data, multi_Y_line_chart, count_avg_length, \
+    calc_ratio_of_bimodal_data, multi_Y_line_chart, count_avg_length, CODE_KEY, TEXT_KEY, \
     calc_token_overlap, draw_token_overlap, calc_overlap_expectation, count_length, \
     draw_length_distribution_by_language, draw_year_distribution, draw_length_distribution, \
-    count_questions_by_year, draw_token_overlap_all_years
+    count_questions_by_year, draw_token_overlap_all_years, draw_bi_modal_overlap_scatter, draw_bi_modal_overlap_bar
 
 
 def both_text_and_code_matters():
@@ -47,12 +49,18 @@ def both_text_and_code_matters():
     # _describe_good_questions()
 
     def _describe_importance_of_bi_modal_data():
-        # overlap = calc_token_overlap(bi_modal_good_questions)
+        # overlap, _ = calc_token_overlap(bi_modal_good_questions)
         cache_path = 'data/cache/overlap_bi_modal_good_questions.pkl'
         # save_cache(overlap, cache_path)
         overlap = load_cache(cache_path)
         # draw_token_overlap(overlap, 'charts/bimodal_overlap_2.png')
         calc_overlap_expectation(overlap)
+    
+    def _bi_modal_overlap_correlation():
+        cache_path = 'data/cache/overlap_bi_modal_good_questions.pkl'
+        overlap = load_cache(cache_path)
+        draw_bi_modal_overlap_scatter(overlap)
+        # draw_bi_modal_overlap_bar(overlap)
 
     def _overlap_of_all_years():
         # overlaps = dict()
@@ -61,8 +69,8 @@ def both_text_and_code_matters():
         #     overlap, total_len = calc_token_overlap(bi_model_good_questions_by_year.format(year=year))
         #     expectations = calc_overlap_expectation(overlap)
         #     overlaps[year] = {
-        #         'code_exp': expectations['Overlap Between Title and Code Snippet'],
-        #         'text_exp': expectations['Overlap Between Title and Text Description'],
+        #         'code_exp': expectations[CODE_KEY],
+        #         'text_exp': expectations[TEXT_KEY],
         #         'total_count': total_len
         #     }
         cache_path = 'data/cache/overlap_bi_modal_good_questions_all_years.pkl'
@@ -70,7 +78,34 @@ def both_text_and_code_matters():
         overlaps = load_cache(cache_path)
         draw_token_overlap_all_years(overlaps, 'charts/bimodal_overlap_all_years.png')
 
-    _overlap_of_all_years()
+    _bi_modal_overlap_correlation()
+
+
+def human_eval_overlap_and_quality():
+    def _pick_by_overlap_range(overlaps, min, max, number):
+        titles = overlaps['titles']
+        picked = []
+        for i in range(len(titles)):
+            avg_overlap = (overlaps[TEXT_KEY][i] + overlaps[CODE_KEY][i]) / 2
+            if min <= avg_overlap < max:
+                picked.append((avg_overlap, titles[i]))
+        return random.sample(picked, number)
+
+    overlaps, total_len = calc_token_overlap('data/json/Good_bi_modal_questions_2020.jsonl')
+    range1 = _pick_by_overlap_range(overlaps, 0, 0.2, 100)
+    range2 = _pick_by_overlap_range(overlaps, 0.2, 0.4, 100)
+    range3 = _pick_by_overlap_range(overlaps, 0.4, 0.6, 100)
+    range4 = _pick_by_overlap_range(overlaps, 0.6, 1, 100)
+    result = {
+        1: range1,
+        2: range2,
+        3: range3,
+        4: range4
+    }
+    cache_path = 'data/cache/overlap_2020_human_eval.pkl'
+    save_cache(result, cache_path)
+    result = load_cache(cache_path)
+    ipdb.set_trace()
 
 
 def describe_datasets():
@@ -102,3 +137,6 @@ def describe_datasets():
 
 if __name__ == '__main__':
     both_text_and_code_matters()
+    # pick_questions_by_time('data/json/Good_questions.jsonl', 'data/json/Good_questions_2020.jsonl', ['2020'])
+    # pick_questions_by_body_content('data/json/Good_questions_2020.jsonl', 'whatever.jsonl', check_interrogative=False, check_length=False)
+    # human_eval_overlap_and_quality()
