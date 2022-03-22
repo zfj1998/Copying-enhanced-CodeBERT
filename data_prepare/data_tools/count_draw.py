@@ -3,8 +3,6 @@ Author WHU ZFJ 2021
 Statistics jobs of our collected data
 '''
 import json
-from turtle import ontimer
-from matplotlib.cbook import maxdict
 import numpy as np
 import ipdb
 from tqdm import tqdm
