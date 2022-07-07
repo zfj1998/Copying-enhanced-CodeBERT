@@ -1,6 +1,6 @@
 # CCBERT
 
-Code for paper(under review) "**[Improving Stack Overflow question title generation with copying enhanced CodeBERT model and bi-modal information](https://arxiv.org/abs/2109.13073)**"
+Code for paper(accepted by Journal of Information and Software Technology) "**[Improving Stack Overflow question title generation with copying enhanced CodeBERT model and bi-modal information](https://www.sciencedirect.com/science/article/abs/pii/S0950584922000763)**"
 
 CCBERT is a Copying enhanced CodeBERT model for Stack Overflow title generation.
 
